@@ -1,0 +1,7 @@
+<RCC>
+  <qresource prefix="status">
+    <file>check.png</file>
+    <file>cross.png</file>
+    <file>mark.png</file>
+  </qresource>
+</RCC>
