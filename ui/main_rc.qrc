@@ -4,6 +4,9 @@
     <file>cross.png</file>
     <file>mark.png</file>
   </qresource>
+  <qresource prefix="logo">
+    <file>gas.png</file>
+  </qresource>
   <qresource prefix="icon">
     <file>folder.png</file>
   </qresource>
