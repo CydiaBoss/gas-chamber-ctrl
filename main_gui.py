@@ -389,4 +389,4 @@ class Ui_MainWindow(object):
         self.action_Quit.setText(_translate("MainWindow", "&Quit"))
         self.action_Resistance.setText(_translate("MainWindow", "&Resistor"))
 from pglive.sources.live_plot_widget import LivePlotWidget
-import main_rc_rc
+import main_rc
