@@ -3,6 +3,7 @@ from PyQt5.QtCore import QCoreApplication
 
 from pglive.sources.live_axis import LiveAxis
 from pglive.sources.live_plot import LiveLinePlot
+from pglive.sources.data_connector import DataConnector
 
 from main_gui import Ui_MainWindow
 
@@ -24,9 +25,6 @@ class Window(Ui_MainWindow, QMainWindow):
         """
         Setup the plots
         """
-        # Setup Legend (Temp)
-        self.temp_legend = self.temp_plot.getPlotItem().addLegend()
-
         # Setup Background
         self.temp_plot.setBackground("w")
         self.humidity_plot.setBackground("w")
@@ -59,15 +57,25 @@ class Window(Ui_MainWindow, QMainWindow):
         self.humidity_plot.getPlotItem().setLabels(title=_t("Humidity"), left=_t("Humidity"), bottom=_t("Time"))
         self.pressure_plot.getPlotItem().setLabels(title=_t("Pressure"), left=_t("Pressure"), bottom=_t("Time"))
         self.resistance_plot.getPlotItem().setLabels(title=_t("Resistance"), left=_t("Resistance"), bottom=_t("Time")) 
+        
+        # Setup Legend (Temp)
+        self.temp_legend = self.temp_plot.getPlotItem().addLegend()
 
         # Setup Line Plot
-        self.temp_amp_line = LiveLinePlot(pen="b", label=_t("Ambient"))
-        self.temp_heater_line = LiveLinePlot(pen="r", label=_t("Heater"))
+        self.temp_amp_line = LiveLinePlot(pen="b", name=_t("Ambient"))
+        self.temp_heater_line = LiveLinePlot(pen="r", name=_t("Heater"))
         self.temp_plot.addItem(self.temp_amp_line)
         self.temp_plot.addItem(self.temp_heater_line)
-        self.humidity_line = LiveLinePlot(pen="g", label=_t("Humidity"))
+        self.humidity_line = LiveLinePlot(pen="g", name=_t("Humidity"))
         self.humidity_plot.addItem(self.humidity_line)
-        self.pressure_line = LiveLinePlot(pen="r", label=_t("Pressure"))
+        self.pressure_line = LiveLinePlot(pen="c", name=_t("Pressure"))
         self.pressure_plot.addItem(self.pressure_line)
-        self.resistance_line = LiveLinePlot(pen="r", label=_t("Resistance"))
+        self.resistance_line = LiveLinePlot(pen="m", name=_t("Resistance"))
         self.resistance_plot.addItem(self.resistance_line)
+
+        # Setup Data Connectors
+        self.temp_amb_data = DataConnector(self.temp_amp_line)
+        self.temp_heater_data = DataConnector(self.temp_heater_line)
+        self.humidity_data = DataConnector(self.humidity_line)
+        self.pressure_data = DataConnector(self.pressure_line)
+        self.resistance_data = DataConnector(self.resistance_line)
