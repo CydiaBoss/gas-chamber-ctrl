@@ -1,5 +1,6 @@
-from PyQt5.QtWidgets import QMainWindow
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtCore import QCoreApplication, pyqtSlot
 
 from pglive.kwargs import Axis
 from pglive.sources.live_axis import LiveAxis
@@ -26,6 +27,8 @@ class Window(Ui_MainWindow, QMainWindow):
         self.setupUi(self)
 
         self.setup_plots()
+
+        self.setup_variables()
 
     def setup_plots(self):
         """
@@ -128,8 +131,28 @@ class Window(Ui_MainWindow, QMainWindow):
         self.reference_resistor = 100.0 # Ohms
 
         # Data Storage
-        self.temp_amb_data_store = np.array([])
-        self.temp_heater_data_store = np.array([])
-        self.humidity_data_store = np.array([])
-        self.pressure_data_store = np.array([])
-        self.resistance_data_store = np.array([])
+        self.time_data_store = np.array([], dtype=np.floating)
+        self.temp_amb_data_store = np.array([], dtype=np.floating)
+        self.temp_heater_data_store = np.array([], dtype=np.floating)
+        self.humidity_data_store = np.array([], dtype=np.floating)
+        self.pressure_data_store = np.array([], dtype=np.floating)
+        self.resistance_data_store = np.array([], dtype=np.floating)
+
+    # Events
+    def closeEvent(self, a0: QCloseEvent | None) -> None:
+        """
+        Add confirmation to closing
+        """
+        confirm = QMessageBox.question(self, _t("Confirmation"), _t("Are you sure you want to close this application?"), QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+
+        # Cancel closing if so
+        if confirm == QMessageBox.StandardButton.No:
+            a0.ignore()
+            return
+
+        return super().closeEvent(a0)
+
+    # Slots
+    @pyqtSlot()
+    def on_action_Quit_triggered(self):
+        self.close()
