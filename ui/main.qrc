@@ -8,6 +8,9 @@
     <file>gas.png</file>
   </qresource>
   <qresource prefix="icon">
+    <file>connect.png</file>
+    <file>start.png</file>
+    <file>stop.png</file>
     <file>folder.png</file>
   </qresource>
 </RCC>
