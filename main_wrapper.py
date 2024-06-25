@@ -191,11 +191,18 @@ class Window(Ui_MainWindow, QMainWindow):
         self.close()
 
     @pyqtSlot()
+    def heater_btn_status(self):
+        """
+        Should heater btn be unlocked
+        """
+        self.heater_toggle.setEnabled(self.heater_value.text() != "")
+
+    @pyqtSlot()
     def record_btn_status(self):
         """
-        When frequency updates
+        Should record btn be unlocked
         """
-        self.record_btn.setEnabled(self.freq_value.text() != "" and self.file_dest.text().strip() != "")
+        self.record_btn.setEnabled(self.freq_value.text() != "" and self.file_dest.text().endswith(".csv"))
 
     @pyqtSlot()
     def on_file_btn_clicked(self):
