@@ -218,6 +218,30 @@ class Window(Ui_MainWindow, QMainWindow):
             self.heater_status = True
 
     @pyqtSlot()
+    def on_start_meas_btn_clicked(self):
+        """
+        Start button logic
+        """
+        self.start_meas_btn.setEnabled(False)
+
+        # Process
+
+        self.stop_meas_btn.setEnabled(True)
+        self.meas_status_icon.setPixmap(QPixmap(":/status/check.png"))
+
+    @pyqtSlot()
+    def on_stop_meas_btn_clicked(self):
+        """
+        Stop button logic
+        """
+        self.stop_meas_btn.setEnabled(False)
+
+        # Process
+
+        self.start_meas_btn.setEnabled(True)
+        self.meas_status_icon.setPixmap(QPixmap(":/status/cross.png"))
+
+    @pyqtSlot()
     def record_btn_status(self):
         """
         Should record btn be unlocked
