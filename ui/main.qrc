@@ -8,6 +8,8 @@
     <file>gas.png</file>
   </qresource>
   <qresource prefix="icon">
+    <file>pencil.png</file>
+    <file>heater.png</file>
     <file>connect.png</file>
     <file>start.png</file>
     <file>stop.png</file>

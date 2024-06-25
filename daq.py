@@ -11,10 +11,16 @@ class Controller(ABC):
 
     @abstractmethod
     def start(self) -> bool:
+        """
+        Starts the measuring process
+        """
         pass
 
     @abstractmethod
     def read(self) -> list[float]:
+        """
+        Takes a sample from the channel
+        """
         pass
     
     @staticmethod
@@ -23,7 +29,59 @@ class Controller(ABC):
         Scans for any connected NI DAQ Devices
         """
         return System.local().devices.device_names
+    
+class RTDController(Controller):
 
+    def __init__(self):
+        """
+        A controller for the DAQ
+        """
+        self.channels = {
+            "amb": "",
+            "heater": "",
+        }
+
+    def set_amb_channel(self, channel : str):
+        """
+        Set the analog input channel for RTD ambient
+        """
+        self.open = False
+        self.channels["amb"] = channel
+
+    def set_heater_channel(self, channel : str):
+        """
+        Set the analog input channel for RTD heater
+        """
+        self.open = False
+        self.channels["heater"] = channel
+
+    def start(self):
+        # Validate start up
+        if "" in self.channels.values():
+            return False
+        
+        # Task Creation
+        self._rtd_task = Task()
+
+        # Channels
+        self._rtd_task.ai_channels.add_ai_rtd_chan(self.channels["amb"], min_val=-30, max_val=300)
+        self._rtd_task.ai_channels.add_ai_rtd_chan(self.channels["heater"], min_val=-30, max_val=300)
+
+        # Success
+        self.open = True
+        return True
+    
+    def read(self):
+        # Validate
+        if not self.open:
+            return []
+        
+        # Read
+        rtd_data : list[float] = self._rtd_task.read()
+
+        # Return
+        return list(rtd_data)
+    
 class VoltageController(Controller):
 
     def __init__(self):
@@ -31,29 +89,12 @@ class VoltageController(Controller):
         A controller for the DAQ
         """
         self.channels = {
-            "rtd_amb": "",
-            "rtd_heater": "",
             "humidity": "",
             "pressure": "",
             "resistance": "",
             "power": ""
         }
         self.ref_resistor = 100.0 # Ohms
-        self.open = False
-
-    def set_rtd_amb_channel(self, channel : str):
-        """
-        Set the analog input channel for RTD ambient
-        """
-        self.open = False
-        self.channels["rtd_amb"] = channel
-
-    def set_rtd_heater_channel(self, channel : str):
-        """
-        Set the analog input channel for RTD heater
-        """
-        self.open = False
-        self.channels["rtd_heater"] = channel
 
     def set_humidity_channel(self, channel : str):
         """
@@ -90,21 +131,14 @@ class VoltageController(Controller):
         self.ref_resistor = resistor
 
     def start(self) -> bool:
-        """
-        Start the data reading process
-        """
         # Validate start up
         if "" in self.channels.values():
             return False
         
         # Making DAQ task
-        self._rtd_task = Task()
         self._v_task = Task()
 
         # Setup
-        self._rtd_task.ai_channels.add_ai_rtd_chan(self.channels["rtd_amb"], min_val=-30, max_val=300)
-        self._rtd_task.ai_channels.add_ai_rtd_chan(self.channels["rtd_heater"], min_val=-30, max_val=300)
-
         self._v_task.ai_channels.add_ai_voltage_chan(self.channels["humidity"])
         self._v_task.ai_channels.add_ai_voltage_chan(self.channels["pressure"], max_val=6)
         self._v_task.ai_channels.add_ai_voltage_chan(self.channels["resistance"])
@@ -115,19 +149,15 @@ class VoltageController(Controller):
         return True
     
     def read(self) -> list[float]:
-        """
-        Reads the voltages from the channels
-        """
         # Validate
         if not self.open:
             return []
         
         # Read
-        rtd_data : list[float] = self._rtd_task.read()
         v_data : list[float] = self._v_task.read()
 
         # Process Resistance
         resistance = v_data[2]*self.ref_resistor/(v_data[3] - v_data[2])
 
         # Return
-        return [*rtd_data, *v_data[:2], resistance]
+        return [*v_data[:2], resistance]

@@ -1,5 +1,6 @@
+import os
 from PyQt5.QtGui import QCloseEvent, QRegExpValidator
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog
 from PyQt5.QtCore import QCoreApplication, QRegExp, pyqtSlot
 
 from pglive.kwargs import Axis
@@ -9,6 +10,7 @@ from pglive.sources.data_connector import DataConnector
 
 import numpy as np
 
+from daq import RTDController, VoltageController
 from main_gui import Ui_MainWindow
 
 from constants import *
@@ -31,6 +33,8 @@ class Window(Ui_MainWindow, QMainWindow):
         self.setup_variables()
 
         self.setup_validations()
+
+        self.setup_signals()
 
     def setup_plots(self):
         """
@@ -140,17 +144,32 @@ class Window(Ui_MainWindow, QMainWindow):
         self.pressure_data_store = np.array([], dtype=np.floating)
         self.resistance_data_store = np.array([], dtype=np.floating)
 
+        # Controllers
+        self.rtd_ctrl : RTDController = None
+        self.v_ctrl : VoltageController = None
+
+        # Heater
+        self.heater_status = False
+
     def setup_validations(self):
         """
         Add validation masks to inputs
         """
         # Temperature Validator
-        temp_input_validator = QRegExpValidator(QRegExp("[0-9]+(\.[0-9]+)?"), self.heater_value)
+        temp_input_validator = QRegExpValidator(QRegExp("\d+(\.\d+)?"), self.heater_value)
         self.heater_value.setValidator(temp_input_validator)
 
         # Frequency Validator
-        freq_temp_validator = QRegExpValidator(QRegExp("[0-9]+(\.[0-9]+)?"), self.freq_value)
+        freq_temp_validator = QRegExpValidator(QRegExp("\d+(\.\d+)?"), self.freq_value)
         self.freq_value.setValidator(freq_temp_validator)
+
+    def setup_signals(self):
+        """
+        Setup signal connections
+        """
+        # Record Button Activity
+        self.freq_value.textChanged.connect(self.record_btn_status)
+        self.file_dest.textChanged.connect(self.record_btn_status)
 
     # Events
     def closeEvent(self, a0: QCloseEvent | None) -> None:
@@ -170,3 +189,29 @@ class Window(Ui_MainWindow, QMainWindow):
     @pyqtSlot()
     def on_action_Quit_triggered(self):
         self.close()
+
+    @pyqtSlot()
+    def record_btn_status(self):
+        """
+        When frequency updates
+        """
+        self.record_btn.setEnabled(self.freq_value.text() != "" and self.file_dest.text().strip() != "")
+
+    @pyqtSlot()
+    def on_file_btn_clicked(self):
+        """
+        Open File Explorer for file saving location
+        """
+        # Get current file directory
+        dir_name = os.path.dirname(self.file_dest.text())
+
+        # Ask for file destination
+        save_dest = QFileDialog.getSaveFileName(self, _t("Choose a destination to save the file"), dir_name, "CSV (*.csv)")
+
+        # If no file selected
+        if save_dest[0].strip() == "":
+            self.statusBar().showMessage(_t("No file destination selected"), 5000)
+            return
+        
+        # Save file path
+        self.file_dest.setText(save_dest[0].strip())
