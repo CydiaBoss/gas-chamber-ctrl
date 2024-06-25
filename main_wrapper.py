@@ -1,5 +1,4 @@
-import os
-from PyQt5.QtGui import QCloseEvent, QRegExpValidator
+from PyQt5.QtGui import QCloseEvent, QRegExpValidator, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QFileDialog
 from PyQt5.QtCore import QCoreApplication, QRegExp, pyqtSlot
 
@@ -9,6 +8,8 @@ from pglive.sources.live_plot import LiveLinePlot
 from pglive.sources.data_connector import DataConnector
 
 import numpy as np
+
+import os
 
 from daq import RTDController, VoltageController
 from main_gui import Ui_MainWindow
@@ -167,6 +168,9 @@ class Window(Ui_MainWindow, QMainWindow):
         """
         Setup signal connections
         """
+        # Heater Button Activity
+        self.heater_value.textChanged.connect(self.heater_btn_status)
+
         # Record Button Activity
         self.freq_value.textChanged.connect(self.record_btn_status)
         self.file_dest.textChanged.connect(self.record_btn_status)
@@ -196,6 +200,22 @@ class Window(Ui_MainWindow, QMainWindow):
         Should heater btn be unlocked
         """
         self.heater_toggle.setEnabled(self.heater_value.text() != "")
+
+    @pyqtSlot()
+    def on_heater_toggle_clicked(self):
+        """
+        Enable to disable heater
+        """
+        if self.heater_status:
+            self.heater_toggle.setText(_t("Start Heater"))
+            self.heat_status_icon.setPixmap(QPixmap(":/status/cross.png"))
+            self.heater_value.setEnabled(True)
+            self.heater_status = False
+        else:
+            self.heater_toggle.setText(_t("Stop Heater"))
+            self.heat_status_icon.setPixmap(QPixmap(":/status/check.png"))
+            self.heater_value.setEnabled(False)
+            self.heater_status = True
 
     @pyqtSlot()
     def record_btn_status(self):
