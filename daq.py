@@ -1,7 +1,30 @@
+from abc import ABC, abstractmethod
+
 from nidaqmx.system import System
 from nidaqmx.task import Task
 
-class Controller():
+class Controller(ABC):
+
+    def __init__(self):
+        self.open = False
+        self.channels = {}
+
+    @abstractmethod
+    def start(self) -> bool:
+        pass
+
+    @abstractmethod
+    def read(self) -> list[float]:
+        pass
+    
+    @staticmethod
+    def scan_for_devices() -> list[str]:
+        """
+        Scans for any connected NI DAQ Devices
+        """
+        return System.local().devices.device_names
+
+class VoltageController(Controller):
 
     def __init__(self):
         """
@@ -108,10 +131,3 @@ class Controller():
 
         # Return
         return [*rtd_data, *v_data[:2], resistance]
-        
-    @staticmethod
-    def scan_for_devices() -> list[str]:
-        """
-        Scans for any connected NI DAQ Devices
-        """
-        return System.local().devices.device_names

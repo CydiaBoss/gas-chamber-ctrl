@@ -1,6 +1,6 @@
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtGui import QCloseEvent, QRegExpValidator
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
-from PyQt5.QtCore import QCoreApplication, pyqtSlot
+from PyQt5.QtCore import QCoreApplication, QRegExp, pyqtSlot
 
 from pglive.kwargs import Axis
 from pglive.sources.live_axis import LiveAxis
@@ -29,6 +29,8 @@ class Window(Ui_MainWindow, QMainWindow):
         self.setup_plots()
 
         self.setup_variables()
+
+        self.setup_validations()
 
     def setup_plots(self):
         """
@@ -137,6 +139,18 @@ class Window(Ui_MainWindow, QMainWindow):
         self.humidity_data_store = np.array([], dtype=np.floating)
         self.pressure_data_store = np.array([], dtype=np.floating)
         self.resistance_data_store = np.array([], dtype=np.floating)
+
+    def setup_validations(self):
+        """
+        Add validation masks to inputs
+        """
+        # Temperature Validator
+        temp_input_validator = QRegExpValidator(QRegExp("[0-9]+(\.[0-9]+)?"), self.heater_value)
+        self.heater_value.setValidator(temp_input_validator)
+
+        # Frequency Validator
+        freq_temp_validator = QRegExpValidator(QRegExp("[0-9]+(\.[0-9]+)?"), self.freq_value)
+        self.freq_value.setValidator(freq_temp_validator)
 
     # Events
     def closeEvent(self, a0: QCloseEvent | None) -> None:
