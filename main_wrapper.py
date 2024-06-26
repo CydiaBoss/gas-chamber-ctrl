@@ -100,6 +100,7 @@ class Window(Ui_MainWindow, QMainWindow):
         
         # Setup Legend for Temperature
         self.temp_legend = self.temp_plot.getPlotItem().addLegend()
+        self.temp_legend.setPen("k")
 
         # Setup Line Plot
         self.temp_amp_line = LiveLinePlot(pen="b", name=_t("Ambient"))
