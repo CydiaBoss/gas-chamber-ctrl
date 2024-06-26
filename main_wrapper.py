@@ -151,6 +151,8 @@ class Window(Ui_MainWindow, QMainWindow):
 
         # Heater
         self.heater_status = False
+        self.measure_status = False
+        self.record_status = False
 
     def setup_validations(self):
         """
@@ -226,27 +228,75 @@ class Window(Ui_MainWindow, QMainWindow):
 
         # Process
 
+        self.measure_status = True
         self.stop_meas_btn.setEnabled(True)
         self.meas_status_icon.setPixmap(QPixmap(":/status/check.png"))
+
+        # Trigger Update
+        self.record_btn_status()
 
     @pyqtSlot()
     def on_stop_meas_btn_clicked(self):
         """
         Stop button logic
         """
+        # Check for recording
+        if self.record_status:
+            self.statusBar().showMessage(_t("Cannot stop measuring while recording"))
+            return
+
+        # Confirm 
+        if QMessageBox.question(self, _t("Confirmation"), _t("Are you sure you want to stop measuring data?"), QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) == QMessageBox.StandardButton.No:
+            return
+        
         self.stop_meas_btn.setEnabled(False)
 
         # Process
 
+        self.measure_status = False
         self.start_meas_btn.setEnabled(True)
         self.meas_status_icon.setPixmap(QPixmap(":/status/cross.png"))
+
+        # Trigger Update
+        self.record_btn_status()
 
     @pyqtSlot()
     def record_btn_status(self):
         """
         Should record btn be unlocked
         """
-        self.record_btn.setEnabled(self.freq_value.text() != "" and self.file_dest.text().endswith(".csv"))
+        self.record_btn.setEnabled(self.freq_value.text() != "" and self.file_dest.text().endswith(".csv") and self.measure_status)
+
+    @pyqtSlot()
+    def on_record_btn_clicked(self):
+        """
+        Record button logic
+        """
+        # If On
+        if self.record_status:
+            # Confirm 
+            if QMessageBox.question(self, _t("Confirmation"), _t("Are you sure you want to stop recording data?"), QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No) == QMessageBox.StandardButton.No:
+                return
+            
+            self.record_btn.setText(_t("Start Recording"))
+            self.record_status = False
+            self.record_status_icon.setPixmap(QPixmap(":/status/cross.png"))
+            self.freq_value.setEnabled(True)
+            self.freq_unit.setEnabled(True)
+            self.file_dest.setEnabled(True)
+
+            self.statusBar().showMessage(_t("Recording stopped"), 5000)
+
+        # If Off
+        else:
+            self.record_btn.setText(_t("Stop Recording"))
+            self.record_status = True
+            self.record_status_icon.setPixmap(QPixmap(":/status/check.png"))
+            self.freq_value.setEnabled(False)
+            self.freq_unit.setEnabled(False)
+            self.file_dest.setEnabled(False)
+
+            self.statusBar().showMessage(_t("Recording started"), 5000)
 
     @pyqtSlot()
     def on_file_btn_clicked(self):
